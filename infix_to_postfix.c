@@ -15,7 +15,7 @@ struct stack* newStack(int cap){
     ptr->it = (float*)malloc(sizeof(float) * cap);
     return ptr;
 }
-int cal(float a,char c,float b){
+float cal(float a,char c,float b){
 	if(c=='+')
 		return a+b;
 	if(c=='-')
@@ -37,8 +37,10 @@ char pos(float n){
 	if(n==13)return '*';
 	return '/';
 }
-bool bigger(char a,char b){
-	if((a=='*'||a=='/')&&(b=='+'||b=='-'))
+bool biggerorequal(char a,char b){
+	if(a=='*'||a=='/')
+		return 1;
+	if((a=='+'||a=='-')&&(b=='+'||b=='-'))
 		return 1;
 	return 0;
 }
@@ -71,6 +73,7 @@ int main(){
 	char c;
 	printf(">");
 	while(scanf("%c",&c)!=EOF){
+		if(c=='\n')break;
 		if(isdigit(c)){
 			push(cp,(int)(c-'0'));
 			printf(" %c",c);
@@ -90,7 +93,7 @@ int main(){
 			pop(ep);
 		}
 		else{
-			while(gettop(ep)>10&&bigger(gettop(ep),c)){
+			if(!isempty(ep)&&gettop(ep)>10&&biggerorequal(pos(gettop(ep)),c)){
 				printf(" %c",pos(gettop(ep)));
 				float i,j=gettop(cp);
 				pop(cp);
@@ -101,6 +104,15 @@ int main(){
 			}
 			push(ep,pre(c));
 		}
+	}
+	while(!isempty(ep)){
+		printf(" %c",pos(gettop(ep)));
+		float i,j=gettop(cp);
+		pop(cp);
+		i=gettop(cp);
+		pop(cp);
+		push(cp,cal(i,pos(gettop(ep)),j));
+		pop(ep);
 	}
 	printf("\n> %d\n",(int)(gettop(cp)+(gettop(cp)>=0?0.5:-0.5)));
 }
