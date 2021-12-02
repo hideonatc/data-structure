@@ -4,8 +4,8 @@
 typedef struct {
 	char ch;
 	int fre;
-	struct ll *left;
-	struct ll *right;
+	struct tree *left;
+	struct tree *right;
 }tree;
 typedef struct{
 	char *key;
@@ -14,7 +14,7 @@ typedef struct{
 	int *com;
 	tree **root;
 }map;
-tree* newnode(char c,int d){
+struct tree* newnode(char c,int d){
 	tree* c_node = (tree*)malloc(sizeof(tree));
 	c_node->left = NULL;
 	c_node->right = NULL;
@@ -22,31 +22,19 @@ tree* newnode(char c,int d){
 	c_node->fre = d;
 	return c_node;
 }
-void swapint(int *a,int *b){
-	int tmp=*a;
-	*a=*b;
-	*b=tmp;
-	return;
-}
-void swapchar(char *a,char *b){
-	char tmp=*a;
-	*a=*b;
-	*b=tmp;
-	return;
-}
-void swaptree(tree *a,tree *b){
-	tree tmp=*a;
-	*a=*b;
-	*b=tmp;
-	return;
-}
+char ctab[9999][9999];
+char ktab[9999];
+int tablen = 0;
+int minweight = 0;
 void insert(map* m,char c,int t,tree* rt,int cm){
-	for(int i=0;i<m->size;i++)
+	for(int i=0;i<m->size&&!cm;i++)
 		if(m->key[i]==c){
 			m->val[i]++;
-			while(i>=0&&((m->val[i]>m->val[i-1])||(m->val[i]==m->val[i-1]&&m->key[i]>m->key[i-1]))){
-				swapint(m->val[i],m->val[i-1]);
-				swapchar(m->key[i],m->key[i-1]);
+			m->root[i]->fre++;
+			while(i>0&&((m->val[i]>m->val[i-1])||(m->val[i]==m->val[i-1]&&m->key[i]>m->key[i-1]))){
+				int tmp=m->val[i];m->val[i]=m->val[i-1];m->val[i-1]=tmp;
+				char tp=m->key[i];m->key[i]=m->key[i-1];m->key[i-1]=tp;
+				tree* t=m->root[i];m->root[i]=m->root[i-1];m->root[i-1]=t;
 				i--;
 			}
 			return;
@@ -54,56 +42,87 @@ void insert(map* m,char c,int t,tree* rt,int cm){
 		m->key[m->size] = c;
 		m->val[m->size] = t;
 		m->com[m->size] = cm;
-		m->root[++m->size] = rt;
-		int i = m->size;
-		while(i>=0&&((m->val[i]>m->val[i-1])||(m->val[i]==m->val[i-1]&&m->key[i]>m->key[i-1]))){
-			swapint(m->val[i],m->val[i-1]);
-			swapchar(m->key[i],m->key[i-1]);
-			swapint(m->com[i],m->com[i-1]);
-			swaptree(m->root[i],m->root[i-1]);
+		m->root[m->size++] = rt;
+		int i = m->size-1;
+		while(i>0&&((m->val[i]>m->val[i-1])||(m->val[i]==m->val[i-1]&&m->key[i]>m->key[i-1]))){
+			int tmp=m->val[i];m->val[i]=m->val[i-1];m->val[i-1]=tmp;
+			char tp=m->key[i];m->key[i]=m->key[i-1];m->key[i-1]=tp;
+			tmp=m->com[i];m->com[i]=m->com[i-1];m->com[i-1]=tmp;
+			tree* t=m->root[i];m->root[i]=m->root[i-1];m->root[i-1]=t;
 			i--;
 		}
 		return;
 }
 void combine(map* m){
-	tree* rt = newnode(m->key[m->size-1],m->val[m->size-1]+m->val[m->size-2]);
-	rt->right = m->root[m->size-2];
-	rt->left = m->root[m->size-1];
 	char sc = m->key[m->size-1];
 	int tim = m->val[m->size-1]+m->val[m->size-2];
-	m->size--;
+	tree* rt = newnode(sc,tim);
+	rt->right = m->root[(m->size)-2];
+	rt->left = m->root[(m->size)-1];
+	m->size=m->size-2;
 	insert(m,sc,tim,rt,1);
 	return;
 }
 void travel(tree* r,char* str){
-	char *one="1";
-	char *zero="0";
+	char one[]="1";
+	char zero[]="0";
 	if(r->right==NULL){
-		printf("char:%c fre:%d encoded:%s\n",r->ch,r->fre,str);
+		ktab[tablen]=r->ch;
+		for(int i=0;i<strlen(str);i++)
+			ctab[tablen][i]=str[i];
+		tablen++;
+		minweight+=r->fre*strlen(str);
 		return;
 	}
-	char *cp = str;
 	strcat(str,one);
 	travel(r->right,str);
-	str = cp;
+	str[strlen(str)-1] = '\0';
+	if(r->left==NULL)
+		return;
 	strcat(str,zero);
 	travel(r->left,str);
-	str = cp;
+	str[strlen(str)-1] = '\0';
 	return;
 }
 int main(){
 	map* mymap = (map*)malloc(sizeof(map));
+	mymap->key = (char*)malloc(sizeof(char)*10000);
+	mymap->val = (int*)malloc(sizeof(int)*10000);
+	mymap->com = (int*)malloc(sizeof(int)*10000);
+	mymap->root = (tree**)malloc(sizeof(tree*)*10000);
 	mymap->size=0;
 	char c;
-	char str[100];
-	int con = 0;
-	while(scanf("%c",&str[con])!=EOF){
-		tree* root = newnode(con,1);
-		insert(mymap,str[con++],1,root,0);
+	char sv[10000];
+	int count = 0;
+	while(scanf("%c",&c)!=EOF){
+		if(c=='\n')break;
+		tree* root = newnode(c,1);
+		sv[count++]=c;
+		insert(mymap,c,1,root,0);
 	}
-	while(mymap->size>1)
+	/*if(mymap->val[0]==count){
+		printf("> ");
+		for(int i=0;i<count;i++)
+			printf("0");
+		printf("\n> %d\n",count);
+		return 0;
+	}*/
+	while(mymap->size>1){
 		combine(mymap);
-	char *sl="";
-	//tree *ft = mymap->root[0];
+	}
+	char sl[]="";
+	char first=sv[0],second=sv[1];
 	travel(mymap->root[0],sl);
+	sv[0]=first;sv[1]=second;
+	printf("> ");
+	for(int i=0;i<count;i++){
+		for(int j=0;j<tablen;j++){
+			if(ktab[j]==sv[i]){
+				for(int k=0;k<strlen(ctab[j]);k++)
+					printf("%c",ctab[j][k]);
+			}
+		}
+	}
+	printf("\n> %d\n",minweight);
+	return 0;
 }
