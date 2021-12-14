@@ -68,15 +68,15 @@ void combine(map* m){
 	char sc = com_name(m->key[m->size-1],m->val[m->size-1],m->key[m->size-2],m->val[m->size-2]);
 	int tim = m->val[m->size-1]+m->val[m->size-2];
 	tree* rt = newnode(sc,tim);
-	rt->right = comp(m->key[m->size-1],m->val[m->size-1],m->com[m->size-1],m->key[m->size-2],m->val[m->size-2],m->com[m->size-1])?m->root[(m->size)-1]:m->root[(m->size)-2];
-	rt->left = comp(m->key[m->size-1],m->val[m->size-1],m->com[m->size-1],m->key[m->size-2],m->val[m->size-2],m->com[m->size-1])?m->root[(m->size)-2]:m->root[(m->size)-1];
+	rt->right = comp(m->key[m->size-1],m->val[m->size-1],m->com[m->size-1],m->key[m->size-2],m->val[m->size-2],m->com[m->size-2])?m->root[(m->size)-1]:m->root[(m->size)-2];
+	rt->left = comp(m->key[m->size-1],m->val[m->size-1],m->com[m->size-1],m->key[m->size-2],m->val[m->size-2],m->com[m->size-2])?m->root[(m->size)-2]:m->root[(m->size)-1];
 	m->size=m->size-2;
 	insert(m,sc,tim,rt,1);
-	printf("\n");
+	/*printf("\n");
 	for(int i=0;i<m->size;i++){
 		printf("m[%d] key:%c val:%d com:%d\n",i,m->key[i],m->val[i],m->com[i]);
 	}
-	printf("\n");
+	printf("\n");*/
 	return;
 }
 void travel(tree* r,char* str){
@@ -114,16 +114,31 @@ int main(){
 	char c;
 	char sv[1001];
 	int count = 0;
+  
+  	char str[ 10001 ];
+  	scanf( "%s",str );
+  	for ( int i = 0; i < strlen( str ); i++ ) {
+      tree *root = newnode( str[ i ], 1 );
+      sv[ count++ ] = str[ i ];
+      insert( mymap, str[ i ], 1, root, 0 );
+    }
+  	
+  	/*
 	while(scanf("%c",&c)!=EOF){
-		//if(c=='\n')break;
+		if(c=='\n')break;
 		tree* root = newnode(c,1);
 		sv[count++]=c;
 		insert(mymap,c,1,root,0);
 	}
+    */
 	while(mymap->size>1){
 		combine(mymap);
 	}
 	char sl[]="";
+
+	char fuck[10001];
+	int index = 0;
+
 	char first=sv[0],second=sv[1],third=sv[2];
 	travel(mymap->root[0],sl);
 	sv[0]=first;sv[1]=second;sv[2]=third;
@@ -132,11 +147,14 @@ int main(){
 		for(int j=0;j<tablen;j++){
 			if(ktab[j]==sv[i]){
 				for(int k=0;k<strlen(ctab[j]);k++)
-					printf("%c",ctab[j][k]);
+					fuck[index++]=ctab[j][k];
+					//printf("%c",ctab[j][k]);
 			}
 		}
 		/*printf("(%c)",sv[i]);*/
 	}
-	printf("\n> %d\n",minweight);
+	printf("%s",fuck);
+	printf("\n");
+	printf("> %d",minweight);
 	return 0;
 }
